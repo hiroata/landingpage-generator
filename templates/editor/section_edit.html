@@ -114,6 +114,11 @@
             </div>
             <div class="card-body">
               <form id="ai-form">
+                <div class="mb-3 text-end">
+                  <button type="button" id="random-fill" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-random me-1"></i>ランダム入力
+                  </button>
+                </div>
                 <div class="row g-3">
                   <div class="col-md-6">
                     <label class="form-label">ビジネス/製品名 <span class="text-danger">*</span></label>
@@ -153,6 +158,7 @@
                     </button>
                   </div>
                 </div>
+                <input type="hidden" id="section-type" value="">
               </form>
             </div>
           </div>
@@ -250,6 +256,9 @@
       document.getElementById('text_color').value = currentSection.settings.text_color || '#212529';
       document.getElementById('padding').value = currentSection.settings.padding || '60px 0';
       document.getElementById('text_align').value = currentSection.settings.text_align || 'left';
+      
+      // セクションタイプを設定
+      document.getElementById('section-type').value = currentSection.type;
       
       // コンテンツフォームを生成
       generateContentForm(currentSection);
@@ -662,8 +671,7 @@
             background_image: document.getElementById('background_image').value
           };
           break;
-          
-        case 'features':
+          case 'features':
           const features = [];
           const featureCount = 3; // 現在は固定数
           
@@ -782,6 +790,58 @@
         alert('保存に失敗しました: ' + error);
       });
     });
+    
+    // ランダム入力ボタン
+    const randomFillButton = document.getElementById('random-fill');
+    if (randomFillButton) {
+      randomFillButton.addEventListener('click', function() {
+        // ランダムな製品/サービス名のリスト
+        const businessNames = [
+          "テックイノベーション", "クラウドマスター", "デジタルソリューション", 
+          "スマートガジェット", "エコフレンドリー", "ヘルスケアプロ", 
+          "デザインスタジオ", "マーケティングエキスパート", "フードデリバリー",
+          "オンライン学習プラットフォーム"
+        ];
+        
+        // ランダムな業種のリスト
+        const industries = [
+          "IT・テクノロジー", "教育", "健康・医療", "金融", "小売", 
+          "製造", "飲食", "不動産", "旅行", "エンターテイメント"
+        ];
+        
+        // ランダムなターゲット層のリスト
+        const targetAudiences = [
+          "20代〜30代の若手ビジネスパーソン", "40代〜50代の経営者", "大学生", 
+          "主婦/主夫", "定年退職者", "フリーランス", "スタートアップ企業", 
+          "中小企業のオーナー", "ITエンジニア", "マーケティング担当者"
+        ];
+        
+        // ランダムな特徴/メリットのリスト
+        const features = [
+          "使いやすいインターフェース, 高速処理, 安全なデータ保護, カスタマイズ可能",
+          "24時間サポート, リーズナブルな価格, 高品質, 迅速な対応",
+          "革新的なテクノロジー, 時間節約, コスト削減, 生産性向上",
+          "環境に優しい, シンプルな操作, 多機能, 拡張性が高い",
+          "専門家のサポート, 充実した機能, 高い信頼性, 柔軟な対応"
+        ];
+        
+        // ランダムなキーワードのリスト
+        const keywords = [
+          "革新, 効率化, 最適化, 高品質",
+          "安全, 信頼, 実績, 専門知識",
+          "低コスト, 高性能, 簡単, 便利",
+          "スピード, 正確性, カスタマイズ, サポート",
+          "デジタル化, 自動化, 分析, 改善"
+        ];
+        
+        // ランダムに選択して入力
+        document.getElementById('business_name').value = businessNames[Math.floor(Math.random() * businessNames.length)];
+        document.getElementById('industry').value = industries[Math.floor(Math.random() * industries.length)];
+        document.getElementById('target_audience').value = targetAudiences[Math.floor(Math.random() * targetAudiences.length)];
+        document.getElementById('key_features').value = features[Math.floor(Math.random() * features.length)];
+        document.getElementById('keywords').value = keywords[Math.floor(Math.random() * keywords.length)];
+      });
+    }
   });
 </script>
 {% endblock %}

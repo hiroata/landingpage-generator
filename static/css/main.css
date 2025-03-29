@@ -1,0 +1,78 @@
+/* グローバルスタイル */
+body {
+    font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+    color: #333;
+    line-height: 1.6;
+  }
+  
+  /* ヘッダーナビゲーション */
+  .navbar-brand i {
+    font-size: 1.2rem;
+  }
+  
+  /* ヒーローセクション */
+  .display-4 {
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  
+  /* カード装飾 */
+  .card {
+    transition: transform 0.3s, box-shadow 0.3s;
+    border-radius: 8px;
+  }
+  
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* フォームスタイル */
+  .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  }
+  
+  /* ボタンスタイル */
+  .btn {
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  
+  .btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+  }
+  
+  .btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+  }
+  
+  /* アニメーション */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  
+  /* ユーティリティクラス */
+  .text-primary-dark {
+    color: #0a58ca;
+  }
+  
+  .bg-light-gray {
+    background-color: #f8f9fa;
+  }
+  
+  .rounded-circle-icon {
+    width: 60px;
+    height: 60px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }

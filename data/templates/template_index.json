@@ -1,0 +1,20 @@
+[
+  {
+    "id": "product",
+    "name": "製品紹介テンプレート",
+    "description": "製品の特徴や価値を効果的に伝えるためのシンプルなデザイン",
+    "thumbnail": "/static/img/templates/thumbnails/product.jpg"
+  },
+  {
+    "id": "service",
+    "name": "サービス案内テンプレート",
+    "description": "サービスの魅力と価値を表現するモダンなデザイン",
+    "thumbnail": "/static/img/templates/thumbnails/service.jpg"
+  },
+  {
+    "id": "portfolio",
+    "name": "ポートフォリオテンプレート",
+    "description": "あなたのスキルや実績を魅力的に紹介するためのデザイン",
+    "thumbnail": "/static/img/templates/thumbnails/portfolio.jpg"
+  }
+]

@@ -1,0 +1,69 @@
+{
+    "id": "portfolio",
+    "name": "ポートフォリオテンプレート",
+    "description": "あなたのスキルや実績を魅力的に紹介するためのデザイン",
+    "thumbnail": "/static/img/templates/thumbnails/portfolio.jpg",
+    "css_file": "/static/css/templates/portfolio.css",
+    "sections": [
+      {
+        "id": "header-section",
+        "type": "header",
+        "title": "ヘッダーセクション",
+        "required": true,
+        "settings": {
+          "background_color": "#2c3e50",
+          "text_color": "#ffffff",
+          "padding": "100px 0",
+          "text_align": "center"
+        }
+      },
+      {
+        "id": "about-section",
+        "type": "about",
+        "title": "自己紹介セクション",
+        "required": true,
+        "settings": {
+          "background_color": "#ffffff",
+          "text_color": "#333333",
+          "padding": "80px 0",
+          "text_align": "left"
+        }
+      },
+      {
+        "id": "features-section",
+        "type": "features",
+        "title": "スキルセクション",
+        "required": true,
+        "settings": {
+          "background_color": "#f8f9fa",
+          "text_color": "#333333",
+          "padding": "80px 0",
+          "text_align": "center"
+        }
+      },
+      {
+        "id": "works-section",
+        "type": "about",
+        "title": "作品紹介セクション",
+        "required": false,
+        "settings": {
+          "background_color": "#ffffff",
+          "text_color": "#333333",
+          "padding": "80px 0",
+          "text_align": "left"
+        }
+      },
+      {
+        "id": "cta-section",
+        "type": "cta",
+        "title": "連絡先セクション",
+        "required": true,
+        "settings": {
+          "background_color": "#2c3e50",
+          "text_color": "#ffffff",
+          "padding": "60px 0",
+          "text_align": "center"
+        }
+      }
+    ]
+  }

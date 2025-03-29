@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ project.name }} - プレビュー</title>
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  
+  <!-- テンプレート固有のCSS -->
+  {% if template and template.css_file %}
+  <link rel="stylesheet" href="{{ template.css_file }}">
+  {% endif %}
+  
+  <style>
+    /* プレビューツールバースタイル */
+    .preview-toolbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background-color: #343a40;
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .preview-toolbar .btn {
+      margin-left: 10px;
+    }
+    
+    /* スペーサー（ツールバーの高さ分） */
+    .toolbar-spacer {
+      height: 56px;
+    }
+    
+    /* セクションのプレビュースタイル */
+    .section-preview {
+      position: relative;
+    }
+    
+    .section-edit-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    
+    .section-preview:hover .section-edit-button {
+      opacity: 1;
+    }
+    
+    /* レスポンシブプレビュー用 */
+    .viewport-size {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background-color: rgba(255, 255, 255, 0.2);
+      margin-right: 10px;
+    }
+    
+    /* カスタム見出しとして使われる場合 */
+    .responsive-controls {
+      display: flex;
+      align-items: center;
+    }
+    
+    .device-button {
+      background: none;
+      border: none;
+      color: white;
+      margin: 0 5px;
+      opacity: 0.6;
+      cursor: pointer;
+    }
+    
+    .device-button.active {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <!-- プレビューツールバー -->
+  <div class="preview-toolbar">
+    <div class="d-flex align-items-center">
+      <span class="me-3">{{ project.name }} - プレビュー</span>
+      <div class="responsive-controls">
+        <button type="button" class="device-button active" data-width="100%" title="デスクトップ">
+          <i class="fas fa-desktop"></i>
+        </button>
+        <button type="button" class="device-button" data-width="992px" title="タブレット">
+          <i class="fas fa-tablet-alt"></i>
+        </button>
+        <button type="button" class="device-button" data-width="576px" title="モバイル">
+          <i class="fas fa-mobile-alt"></i>
+        </button>
+        <span class="viewport-size ms-2">100%</span>
+      </div>
+    </div>
+    <div>
+      <a href="{{ url_for('editor.edit_project', project_id=project.id) }}" class="btn btn-outline-light btn-sm">
+        <i class="fas fa-arrow-left me-1"></i>エディタに戻る
+      </a>
+      <a href="{{ url_for('export.export_options', project_id=project.id) }}" class="btn btn-outline-light btn-sm">
+        <i class="fas fa-download me-1"></i>エクスポート
+      </a>
+    </div>
+  </div>
+
+  <!-- ツールバーのスペーサー -->
+  <div class="toolbar-spacer"></div>
+
+  <!-- プレビューコンテナ（レスポンシブコントロール用） -->
+  <div id="preview-container" style="margin: 0 auto; max-width: 100%; transition: max-width 0.3s;">
+  
+    <!-- セクション -->
+    {% for section in project.sections %}
+    <div class="section-preview" id="section-{{ section.id }}">
+      <!-- 編集ボタン -->
+      <a href="{{ url_for('editor.edit_project', project_id=project.id) }}#{{ section.id }}" class="section-edit-button">
+        <i class="fas fa-pen me-1"></i>編集
+      </a>
+      
+      <!-- セクションのスタイル -->
+      <div style="
+        background-color: {{ section.settings.background_color }};
+        color: {{ section.settings.text_color }};
+        padding: {{ section.settings.padding }};
+        text-align: {{ section.settings.text_align }};
+      ">
+        <div class="container">
+          <!-- セクションタイプに基づいたコンテンツ -->
+          {% if section.type == 'header' %}
+            <h1>{{ section.content.headline }}</h1>
+            <p>{{ section.content.subheadline }}</p>
+            <a href="{{ section.content.cta_url }}" class="btn btn-primary">{{ section.content.cta_text }}</a>
+          
+          {% elif section.type == 'features' %}
+            <h2>{{ section.content.intro_text }}</h2>
+            <div class="row mt-4">
+              {% for feature in section.content.features %}
+                <div class="col-md-4 mb-4">
+                  <div class="card h-100">
+                    <div class="card-body text-center">
+                      <i class="fas {{ feature.icon }} fa-3x mb-3 text-primary"></i>
+                      <h3>{{ feature.title }}</h3>
+                      <p>{{ feature.description }}</p>
+                    </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        
+        {% elif section.type == 'about' %}
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <h2>{{ section.content.heading }}</h2>
+              <p>{{ section.content.description }}</p>
+            </div>
+            <div class="col-md-6">
+              {% if section.content.image %}
+                <img src="{{ section.content.image }}" class="img-fluid rounded" alt="{{ section.content.heading }}">
+              {% endif %}
+            </div>
+          </div>
+        
+        {% elif section.type == 'pricing' %}
+          <h2 class="text-center">{{ section.content.heading }}</h2>
+          <p class="text-center">{{ section.content.description }}</p>
+          <div class="row mt-4">
+            {% for plan in section.content.plans %}
+              <div class="col-md-{% if section.content.plans|length == 3 %}4{% else %}6{% endif %} mb-4">
+                <div class="card h-100 {% if plan.recommended %}border-primary{% endif %}">
+                  <div class="card-header {% if plan.recommended %}bg-primary text-white{% endif %}">
+                    <h3 class="text-center mb-0">{{ plan.name }}</h3>
+                  </div>
+                  <div class="card-body text-center">
+                    <div class="price mb-3">
+                      <span class="h2">{{ plan.price }}</span>
+                      <span class="text-muted">/ {{ plan.period }}</span>
+                    </div>
+                    <p>{{ plan.description }}</p>
+                    <ul class="list-unstyled">
+                      {% for feature in plan.features %}
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> {{ feature }}</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                  <div class="card-footer text-center">
+                    <a href="#" class="btn {% if plan.recommended %}btn-primary{% else %}btn-outline-primary{% endif %}">{{ plan.cta_text }}</a>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        
+        {% elif section.type == 'cta' %}
+          <div class="text-center">
+            <h2>{{ section.content.heading }}</h2>
+            <p class="lead">{{ section.content.description }}</p>
+            <a href="{{ section.content.button_url }}" class="btn btn-light btn-lg px-4">{{ section.content.button_text }}</a>
+          </div>
+        
+        {% elif section.type == 'contact' %}
+          <h2 class="text-center">{{ section.content.heading }}</h2>
+          <p class="text-center">{{ section.content.description }}</p>
+          <div class="row mt-4">
+            <div class="col-md-6 mb-4">
+              <div class="card h-100">
+                <div class="card-body">
+                  <h3>連絡先情報</h3>
+                  <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-envelope me-2"></i> {{ section.content.contact_info.email }}</li>
+                    <li class="mb-2"><i class="fas fa-phone me-2"></i> {{ section.content.contact_info.phone }}</li>
+                    <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> {{ section.content.contact_info.address }}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6 mb-4">
+              <div class="card h-100">
+                <div class="card-body">
+                  <h3>お問い合わせフォーム</h3>
+                  <form>
+                    {% for field in section.content.form_fields %}
+                      <div class="mb-3">
+                        <label class="form-label">{{ field }}</label>
+                        {% if field|lower == 'メッセージ' or field|lower == 'message' %}
+                          <textarea class="form-control" rows="4"></textarea>
+                        {% else %}
+                          <input type="{% if field|lower == 'email' or field|lower == 'メールアドレス' %}email{% else %}text{% endif %}" class="form-control">
+                        {% endif %}
+                      </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary">送信</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        
+        {% else %}
+          <div class="text-center py-4">
+            <p class="text-muted">このセクションタイプのプレビューはまだ実装されていません</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Bootstrap JS with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- プレビュー用JavaScript -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // レスポンシブプレビューコントロール
+    const previewContainer = document.getElementById('preview-container');
+    const viewportSizeDisplay = document.querySelector('.viewport-size');
+    const deviceButtons = document.querySelectorAll('.device-button');
+    
+    deviceButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        // アクティブクラスを切り替え
+        deviceButtons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        
+        // コンテナの幅を設定
+        const width = this.getAttribute('data-width');
+        previewContainer.style.maxWidth = width;
+        
+        // 表示サイズを更新
+        viewportSizeDisplay.textContent = width;
+      });
+    });
+  });
+</script>
+</body>
+</html>

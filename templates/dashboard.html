@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}マイプロジェクト - 自動ランディングページ生成ツール{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h1 class="fw-bold">マイプロジェクト</h1>
+      <p class="lead">作成したランディングページプロジェクトを管理します。</p>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-12">
+      <a href="{{ url_for('editor.template_select') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>新規プロジェクト作成
+      </a>
+    </div>
+  </div>
+
+  {% if projects %}
+    <div class="row g-4">
+      {% for project in projects %}
+        <div class="col-md-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">{{ project.name }}</h5>
+              <p class="card-text text-muted small">
+                テンプレート: {{ project.template }}
+              </p>
+              <p class="card-text text-muted small">
+                作成日: {{ project.created_at }}
+              </p>
+              <p class="card-text text-muted small">
+                更新日: {{ project.updated_at }}
+              </p>
+            </div>
+            <div class="card-footer bg-transparent">
+              <div class="d-flex justify-content-between">
+                <a href="{{ url_for('editor.edit_project', project_id=project.id) }}" class="btn btn-sm btn-outline-primary">
+                  <i class="fas fa-edit me-1"></i>編集
+                </a>
+                <a href="{{ url_for('editor.preview_project', project_id=project.id) }}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                  <i class="fas fa-eye me-1"></i>プレビュー
+                </a>
+                <a href="{{ url_for('export.export_options', project_id=project.id) }}" class="btn btn-sm btn-outline-success">
+                  <i class="fas fa-download me-1"></i>エクスポート
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info text-center p-5">
+      <i class="fas fa-info-circle fa-3x mb-3"></i>
+      <h4>プロジェクトがありません</h4>
+      <p>新規プロジェクト作成ボタンからランディングページを作成しましょう。</p>
+      <a href="{{ url_for('editor.template_select') }}" class="btn btn-primary mt-3">
+        今すぐ作成する
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

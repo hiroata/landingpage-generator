@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}自動ランディングページ生成ツール{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row align-items-center">
+    <div class="col-lg-6">
+      <h1 class="display-4 fw-bold mb-4">ランディングページを<br>AIで簡単作成</h1>
+      <p class="lead mb-4">マーケティング知識がなくても、AIの力であなたのビジネスに最適なランディングページを数分で作成できます。</p>
+      <div class="d-grid gap-2 d-md-flex justify-content-md-start mb-4">
+        <a href="{{ url_for('editor.template_select') }}" class="btn btn-primary btn-lg px-4 me-md-2">今すぐ始める</a>
+        <a href="{{ url_for('main.about') }}" class="btn btn-outline-secondary btn-lg px-4">詳細を見る</a>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <img src="/static/img/hero-image.png" alt="ランディングページ生成イメージ" class="img-fluid rounded shadow-lg">
+    </div>
+  </div>
+
+  <div class="row mt-5 pt-5">
+    <div class="col-12 text-center mb-5">
+      <h2 class="fw-bold">簡単3ステップで完成</h2>
+      <p class="lead">テンプレートを選んで情報を入力するだけ。AIが最適なコンテンツを生成します。</p>
+    </div>
+  </div>
+  
+  <div class="row g-4 mb-5">
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body text-center p-4">
+          <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+            <h3 class="m-0">1</h3>
+          </div>
+          <h4 class="fw-bold">テンプレート選択</h4>
+          <p>あなたのビジネスに合ったテンプレートを選びましょう。製品紹介、サービス案内、ポートフォリオなど、目的に応じたデザインをご用意しています。</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body text-center p-4">
+          <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+            <h3 class="m-0">2</h3>
+          </div>
+          <h4 class="fw-bold">基本情報入力</h4>
+          <p>ビジネス名、業種、主な特徴など、最小限の情報を入力。AIがあなたのビジネスを理解し、魅力的なコンテンツを自動生成します。</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body text-center p-4">
+          <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+            <h3 class="m-0">3</h3>
+          </div>
+          <h4 class="fw-bold">編集とエクスポート</h4>
+          <p>生成されたコンテンツを確認し、必要に応じて編集。完成したランディングページはHTMLとしてエクスポートして、すぐに使えます。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-5 mb-5 pt-5">
+    <div class="col-12 text-center">
+      <h2 class="fw-bold mb-4">あなたのビジネスに最適な<br>ランディングページを今すぐ作成</h2>
+      <a href="{{ url_for('editor.template_select') }}" class="btn btn-primary btn-lg px-5 py-3">無料で始める</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

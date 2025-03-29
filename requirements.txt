@@ -1,0 +1,24 @@
+# Flask基本
+Flask==2.3.3
+Werkzeug==2.3.7
+Jinja2==3.1.2
+MarkupSafe==2.1.3
+itsdangerous==2.1.2
+
+# 開発とデバッグ
+python-dotenv==1.0.0
+Flask-DebugToolbar==0.13.1
+
+# AI API連携
+openai==1.3.7  # OpenAI API
+anthropic==0.8.0  # Anthropic Claude API
+requests==2.31.0
+
+# ユーティリティ
+pyyaml==6.0.1  # 設定ファイル
+python-slugify==8.0.1  # URL/ファイル名スラッグ生成
+beautifulsoup4==4.12.2  # HTML処理
+
+# テスト
+pytest==7.4.0
+pytest-flask==1.2.0

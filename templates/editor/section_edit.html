@@ -1,0 +1,787 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ project.name }} - 編集 | 自動ランディングページ生成ツール{% endblock %}
+
+{% block extra_css %}
+<style>
+  .section-sidebar {
+    height: calc(100vh - 56px);
+    position: sticky;
+    top: 56px;
+    overflow-y: auto;
+  }
+  .section-item {
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
+  }
+  .section-item:hover {
+    background-color: #f8f9fa;
+  }
+  .section-item.active {
+    border-left-color: #0d6efd;
+    background-color: rgba(13, 110, 253, 0.05);
+  }
+  .editor-container {
+    min-height: calc(100vh - 56px);
+  }
+  .ai-generate-btn {
+    position: relative;
+  }
+  .ai-generate-btn .spinner-border {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: none;
+  }
+  .ai-generate-btn.loading .spinner-border {
+    display: inline-block;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <div class="row g-0">
+    <!-- 左サイドバー（セクション一覧） -->
+    <div class="col-md-3 bg-light section-sidebar border-end">
+      <div class="p-3">
+        <h5 class="mb-3 fw-bold">{{ project.name }}</h5>
+        <p class="text-muted small mb-3">テンプレート: {{ template.name }}</p>
+        
+        <div class="mb-3">
+          <a href="{{ url_for('editor.preview_project', project_id=project.id) }}" class="btn btn-primary w-100" target="_blank">
+            <i class="fas fa-eye me-2"></i>プレビュー
+          </a>
+        </div>
+        
+        <hr>
+        
+        <h6 class="text-uppercase fw-bold small text-muted mb-3">セクション</h6>
+        <div class="list-group list-group-flush">
+          {% for section in project.sections %}
+          <div class="list-group-item section-item p-3" data-section-id="{{ section.id }}">
+            <div class="d-flex align-items-center">
+              <i class="fas fa-grip-lines me-2 text-muted"></i>
+              <div>
+                <p class="mb-0 fw-medium">{{ section.title }}</p>
+                <small class="text-muted">{{ section.type }}</small>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        
+        <hr>
+        
+        <div class="mb-3">
+          <a href="{{ url_for('export.export_options', project_id=project.id) }}" class="btn btn-success w-100">
+            <i class="fas fa-download me-2"></i>エクスポート
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- メインエディタエリア -->
+    <div class="col-md-9 editor-container">
+      <div class="p-4">
+        <!-- セクション編集フォーム（初期状態では非表示、JavaScriptで動的に表示） -->
+        <div id="section-editor" class="d-none">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold section-title">セクションを選択してください</h4>
+            <button id="save-section" class="btn btn-primary">
+              <i class="fas fa-save me-2"></i>保存
+            </button>
+          </div>
+          
+          <div class="alert alert-info mb-4">
+            <div class="d-flex">
+              <div class="me-3">
+                <i class="fas fa-lightbulb fa-2x text-primary"></i>
+              </div>
+              <div>
+                <h5 class="alert-heading">AIでコンテンツを生成</h5>
+                <p class="mb-0">ビジネス情報を入力して「AIで生成」ボタンをクリックすると、魅力的なコンテンツを自動生成します。</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- AI生成フォーム -->
+          <div class="card mb-4">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">AI生成設定</h5>
+            </div>
+            <div class="card-body">
+              <form id="ai-form">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">ビジネス/製品名 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="business_name" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">業種 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="industry" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">ターゲット層 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="target_audience" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">文体トーン</label>
+                    <select class="form-select" id="tone">
+                      <option value="professional">プロフェッショナル</option>
+                      <option value="friendly">フレンドリー</option>
+                      <option value="casual">カジュアル</option>
+                      <option value="formal">フォーマル</option>
+                    </select>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">主な特徴/メリット <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="key_features" rows="3" required></textarea>
+                    <div class="form-text">カンマ区切りで入力してください</div>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">キーワード</label>
+                    <input type="text" class="form-control" id="keywords">
+                    <div class="form-text">SEO対策用キーワードをカンマ区切りで入力</div>
+                  </div>
+                  <div class="col-12">
+                    <button type="button" id="ai-generate" class="btn btn-success ai-generate-btn">
+                      <i class="fas fa-magic me-2"></i>AIで生成
+                      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+          
+          <!-- コンテンツ編集フォーム（各セクションタイプごとに異なるフォームを表示） -->
+          <div id="content-form-container">
+            <!-- JavaScriptで動的に挿入 -->
+          </div>
+          
+          <!-- デザイン設定 -->
+          <div class="card mt-4">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">デザイン設定</h5>
+            </div>
+            <div class="card-body">
+              <form id="settings-form">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">背景色</label>
+                    <input type="color" class="form-control form-control-color w-100" id="background_color">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">テキスト色</label>
+                    <input type="color" class="form-control form-control-color w-100" id="text_color">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">余白</label>
+                    <input type="text" class="form-control" id="padding" placeholder="例: 60px 0">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">文字揃え</label>
+                    <select class="form-select" id="text_align">
+                      <option value="left">左揃え</option>
+                      <option value="center">中央揃え</option>
+                      <option value="right">右揃え</option>
+                    </select>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        
+        <!-- セクション未選択時の表示 -->
+        <div id="no-section-selected" class="text-center py-5">
+          <div class="py-5">
+            <i class="fas fa-arrow-left fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">左側のセクションを選択して編集を開始してください</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // セクションデータをJavaScriptで利用できるようにする
+    const projectData = {{ project | tojson }};
+    let currentSection = null;
+    
+    // セクション選択イベント
+    const sectionItems = document.querySelectorAll('.section-item');
+    sectionItems.forEach(item => {
+      item.addEventListener('click', function() {
+        const sectionId = this.getAttribute('data-section-id');
+        selectSection(sectionId);
+        
+        // アクティブクラスの切り替え
+        sectionItems.forEach(si => si.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+    
+    // セクション選択処理
+    function selectSection(sectionId) {
+      // セクションデータを取得
+      currentSection = projectData.sections.find(section => section.id === sectionId);
+      
+      if (!currentSection) {
+        return;
+      }
+      
+      // エディタを表示
+      document.getElementById('section-editor').classList.remove('d-none');
+      document.getElementById('no-section-selected').classList.add('d-none');
+      
+      // セクションタイトルを設定
+      document.querySelector('.section-title').textContent = currentSection.title;
+      
+      // デザイン設定の値を設定
+      document.getElementById('background_color').value = currentSection.settings.background_color || '#ffffff';
+      document.getElementById('text_color').value = currentSection.settings.text_color || '#212529';
+      document.getElementById('padding').value = currentSection.settings.padding || '60px 0';
+      document.getElementById('text_align').value = currentSection.settings.text_align || 'left';
+      
+      // コンテンツフォームを生成
+      generateContentForm(currentSection);
+    }
+    
+    // セクションタイプに応じたコンテンツフォームを生成
+    function generateContentForm(section) {
+      const container = document.getElementById('content-form-container');
+      const sectionType = section.type;
+      const content = section.content || {};
+      
+      let formHtml = '';
+      
+      // セクションタイプに応じたフォームを生成
+      switch (sectionType) {
+        case 'header':
+          formHtml = `
+            <div class="card mb-4">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">ヘッダーコンテンツ</h5>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label class="form-label">メイン見出し</label>
+                  <input type="text" class="form-control" id="headline" value="${content.headline || ''}">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">サブ見出し</label>
+                  <textarea class="form-control" id="subheadline" rows="2">${content.subheadline || ''}</textarea>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label class="form-label">ボタンテキスト</label>
+                      <input type="text" class="form-control" id="cta_text" value="${content.cta_text || ''}">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label class="form-label">ボタンリンク</label>
+                      <input type="text" class="form-control" id="cta_url" value="${content.cta_url || ''}">
+                    </div>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">背景画像URL（オプション）</label>
+                  <input type="text" class="form-control" id="background_image" value="${content.background_image || ''}">
+                </div>
+              </div>
+            </div>
+          `;
+          break;
+          
+        case 'features':
+          let featuresHtml = '';
+          const features = content.features || [
+            { title: '', description: '', icon: '' },
+            { title: '', description: '', icon: '' },
+            { title: '', description: '', icon: '' }
+          ];
+          
+          features.forEach((feature, index) => {
+            featuresHtml += `
+              <div class="card mb-3">
+                <div class="card-body">
+                  <h6 class="card-subtitle mb-3">特徴 ${index + 1}</h6>
+                  <div class="mb-3">
+                    <label class="form-label">タイトル</label>
+                    <input type="text" class="form-control" id="feature_title_${index}" value="${feature.title || ''}">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">説明</label>
+                    <textarea class="form-control" id="feature_description_${index}" rows="2">${feature.description || ''}</textarea>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">アイコン（Font Awesomeクラス）</label>
+                    <input type="text" class="form-control" id="feature_icon_${index}" value="${feature.icon || ''}" placeholder="例: fa-star">
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+          
+          formHtml = `
+            <div class="card mb-4">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">特徴セクション</h5>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label class="form-label">導入テキスト</label>
+                  <input type="text" class="form-control" id="intro_text" value="${content.intro_text || ''}">
+                </div>
+                <h6 class="mb-3">特徴リスト</h6>
+                ${featuresHtml}
+              </div>
+            </div>
+          `;
+          break;
+          
+        case 'about':
+          formHtml = `
+            <div class="card mb-4">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">会社/製品紹介</h5>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label class="form-label">見出し</label>
+                  <input type="text" class="form-control" id="heading" value="${content.heading || ''}">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">説明文</label>
+                  <textarea class="form-control" id="description" rows="5">${content.description || ''}</textarea>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">画像URL（オプション）</label>
+                  <input type="text" class="form-control" id="image" value="${content.image || ''}">
+                </div>
+              </div>
+            </div>
+          `;
+          break;
+          
+        case 'pricing':
+          let plansHtml = '';
+          const plans = content.plans || [
+            { name: '', price: '', period: '', description: '', features: [], cta_text: '', recommended: false },
+            { name: '', price: '', period: '', description: '', features: [], cta_text: '', recommended: false }
+          ];
+          
+          plans.forEach((plan, index) => {
+            const features = plan.features || [];
+            let featuresValue = features.join('\n');
+            
+            plansHtml += `
+              <div class="card mb-3">
+                <div class="card-body">
+                  <h6 class="card-subtitle mb-3">プラン ${index + 1}</h6>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">プラン名</label>
+                        <input type="text" class="form-control" id="plan_name_${index}" value="${plan.name || ''}">
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">料金</label>
+                        <input type="text" class="form-control" id="plan_price_${index}" value="${plan.price || ''}">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">期間</label>
+                        <input type="text" class="form-control" id="plan_period_${index}" value="${plan.period || ''}" placeholder="例: 月額">
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">ボタンテキスト</label>
+                        <input type="text" class="form-control" id="plan_cta_text_${index}" value="${plan.cta_text || ''}">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">説明</label>
+                    <input type="text" class="form-control" id="plan_description_${index}" value="${plan.description || ''}">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">特徴リスト（1行に1つ）</label>
+                    <textarea class="form-control" id="plan_features_${index}" rows="4">${featuresValue}</textarea>
+                  </div>
+                  <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="plan_recommended_${index}" ${plan.recommended ? 'checked' : ''}>
+                    <label class="form-check-label" for="plan_recommended_${index}">
+                      おすすめプランとして表示
+                    </label>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+          
+          formHtml = `
+            <div class="card mb-4">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">料金プラン</h5>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label class="form-label">見出し</label>
+                  <input type="text" class="form-control" id="heading" value="${content.heading || ''}">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">説明文</label>
+                  <input type="text" class="form-control" id="description" value="${content.description || ''}">
+                </div>
+                <h6 class="mb-3">プラン詳細</h6>
+                ${plansHtml}
+              </div>
+            </div>
+          `;
+          break;
+          
+        case 'cta':
+          formHtml = `
+            <div class="card mb-4">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">行動喚起（CTA）</h5>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label class="form-label">見出し</label>
+                  <input type="text" class="form-control" id="heading" value="${content.heading || ''}">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">説明文</label>
+                  <textarea class="form-control" id="description" rows="2">${content.description || ''}</textarea>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label class="form-label">ボタンテキスト</label>
+                      <input type="text" class="form-control" id="button_text" value="${content.button_text || ''}">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label class="form-label">ボタンリンク</label>
+                      <input type="text" class="form-control" id="button_url" value="${content.button_url || ''}">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          break;
+          
+        case 'contact':
+          let fieldsValue = '';
+          if (content.form_fields && Array.isArray(content.form_fields)) {
+            fieldsValue = content.form_fields.join('\n');
+          }
+          
+          formHtml = `
+            <div class="card mb-4">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">お問い合わせ</h5>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label class="form-label">見出し</label>
+                  <input type="text" class="form-control" id="heading" value="${content.heading || ''}">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">説明文</label>
+                  <textarea class="form-control" id="description" rows="2">${content.description || ''}</textarea>
+                </div>
+                <h6 class="mb-3">連絡先情報</h6>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label class="form-label">メールアドレス</label>
+                      <input type="email" class="form-control" id="contact_email" value="${content.contact_info?.email || ''}">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label class="form-label">電話番号</label>
+                      <input type="text" class="form-control" id="contact_phone" value="${content.contact_info?.phone || ''}">
+                    </div>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">住所</label>
+                  <input type="text" class="form-control" id="contact_address" value="${content.contact_info?.address || ''}">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">フォームフィールド（1行に1つ）</label>
+                  <textarea class="form-control" id="form_fields" rows="4">${fieldsValue}</textarea>
+                  <div class="form-text">例: 名前, メールアドレス, メッセージ</div>
+                </div>
+              </div>
+            </div>
+          `;
+          break;
+          
+        default:
+          formHtml = `
+            <div class="card mb-4">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">カスタムセクション</h5>
+              </div>
+              <div class="card-body">
+                <div class="alert alert-warning">
+                  このセクションタイプのエディタはまだ実装されていません。
+                </div>
+              </div>
+            </div>
+          `;
+      }
+      
+      container.innerHTML = formHtml;
+    }
+    
+    // AIによるコンテンツ生成
+    document.getElementById('ai-generate').addEventListener('click', function() {
+      if (!currentSection) {
+        return;
+      }
+      
+      // 入力フォームからコンテキスト情報を取得
+      const context = {
+        business_type: "product",  // デフォルトではプロダクト
+        business_name: document.getElementById('business_name').value,
+        industry: document.getElementById('industry').value,
+        target_audience: document.getElementById('target_audience').value,
+        key_features: document.getElementById('key_features').value,
+        tone: document.getElementById('tone').value,
+        keywords: document.getElementById('keywords').value
+      };
+      
+      // 必須項目のバリデーション
+      if (!context.business_name || !context.industry || !context.target_audience || !context.key_features) {
+        alert('必須項目を入力してください');
+        return;
+      }
+      
+      // ローディング表示
+      this.classList.add('loading');
+      
+      // APIリクエスト
+      fetch('/editor/generate-content', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          section_type: currentSection.type,
+          context: context
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        // ローディング終了
+        this.classList.remove('loading');
+        
+        if (data.success) {
+          // 生成されたコンテンツを処理（セクションタイプに応じた処理）
+          processGeneratedContent(data.content, currentSection.type);
+        } else {
+          alert('エラーが発生しました: ' + data.message);
+        }
+      })
+      .catch(error => {
+        this.classList.remove('loading');
+        alert('エラーが発生しました: ' + error);
+      });
+    });
+    
+    // 生成されたコンテンツをフォームにセット
+    function processGeneratedContent(content, sectionType) {
+      // コンテンツをパースして適切なフォームフィールドに設定
+      // 実際の実装では、AIの出力形式に応じてパース処理が必要
+      
+      // 仮の実装（テキストの解析例）
+      try {
+        // 単純な例（実際はもっと複雑なパース処理が必要）
+        if (sectionType === 'header') {
+          // ヘッダー例: "見出し: サブ見出し: ボタンテキスト"
+          const parts = content.split(':').map(part => part.trim());
+          if (parts.length >= 1) document.getElementById('headline').value = parts[0];
+          if (parts.length >= 2) document.getElementById('subheadline').value = parts[1];
+          if (parts.length >= 3) document.getElementById('cta_text').value = parts[2];
+        } 
+        else if (sectionType === 'features') {
+          // 特徴セクションは複雑なので、単純にテキストエリアに表示
+          alert('生成されたコンテンツをフォームに適用してください:\n\n' + content);
+        } 
+        else {
+          // その他のセクションタイプ
+          alert('生成されたコンテンツをフォームに適用してください:\n\n' + content);
+        }
+      } catch (error) {
+        console.error('Content parsing error:', error);
+        alert('生成されたコンテンツの処理中にエラーが発生しました。手動で入力してください。');
+      }
+    }
+    
+    // セクション保存処理
+    document.getElementById('save-section').addEventListener('click', function() {
+      if (!currentSection) {
+        return;
+      }
+      
+      // 現在のセクションタイプに応じてフォームからデータを収集
+      const sectionType = currentSection.type;
+      let content = {};
+      
+      switch (sectionType) {
+        case 'header':
+          content = {
+            headline: document.getElementById('headline').value,
+            subheadline: document.getElementById('subheadline').value,
+            cta_text: document.getElementById('cta_text').value,
+            cta_url: document.getElementById('cta_url').value,
+            background_image: document.getElementById('background_image').value
+          };
+          break;
+          
+        case 'features':
+          const features = [];
+          const featureCount = 3; // 現在は固定数
+          
+          for (let i = 0; i < featureCount; i++) {
+            features.push({
+              title: document.getElementById(`feature_title_${i}`).value,
+              description: document.getElementById(`feature_description_${i}`).value,
+              icon: document.getElementById(`feature_icon_${i}`).value
+            });
+          }
+          
+          content = {
+            intro_text: document.getElementById('intro_text').value,
+            features: features
+          };
+          break;
+          
+        case 'about':
+          content = {
+            heading: document.getElementById('heading').value,
+            description: document.getElementById('description').value,
+            image: document.getElementById('image').value
+          };
+          break;
+          
+        case 'pricing':
+          const plans = [];
+          const planCount = 2; // 現在は固定数
+          
+          for (let i = 0; i < planCount; i++) {
+            const featuresText = document.getElementById(`plan_features_${i}`).value;
+            const featuresList = featuresText.split('\n').filter(line => line.trim() !== '');
+            
+            plans.push({
+              name: document.getElementById(`plan_name_${i}`).value,
+              price: document.getElementById(`plan_price_${i}`).value,
+              period: document.getElementById(`plan_period_${i}`).value,
+              description: document.getElementById(`plan_description_${i}`).value,
+              features: featuresList,
+              cta_text: document.getElementById(`plan_cta_text_${i}`).value,
+              recommended: document.getElementById(`plan_recommended_${i}`).checked
+            });
+          }
+          
+          content = {
+            heading: document.getElementById('heading').value,
+            description: document.getElementById('description').value,
+            plans: plans
+          };
+          break;
+          
+        case 'cta':
+          content = {
+            heading: document.getElementById('heading').value,
+            description: document.getElementById('description').value,
+            button_text: document.getElementById('button_text').value,
+            button_url: document.getElementById('button_url').value
+          };
+          break;
+          
+        case 'contact':
+          const fieldsText = document.getElementById('form_fields').value;
+          const fieldsList = fieldsText.split('\n').filter(line => line.trim() !== '');
+          
+          content = {
+            heading: document.getElementById('heading').value,
+            description: document.getElementById('description').value,
+            contact_info: {
+              email: document.getElementById('contact_email').value,
+              phone: document.getElementById('contact_phone').value,
+              address: document.getElementById('contact_address').value
+            },
+            form_fields: fieldsList
+          };
+          break;
+      }
+      
+      // デザイン設定の取得
+      const settings = {
+        background_color: document.getElementById('background_color').value,
+        text_color: document.getElementById('text_color').value,
+        padding: document.getElementById('padding').value,
+        text_align: document.getElementById('text_align').value
+      };
+      
+      // サーバーに保存
+      fetch(`/editor/save-section/${projectData.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          section_id: currentSection.id,
+          content: content,
+          settings: settings
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('セクションが保存されました');
+          
+          // UIの更新（現在のセクションデータを更新）
+          for (let i = 0; i < projectData.sections.length; i++) {
+            if (projectData.sections[i].id === currentSection.id) {
+              projectData.sections[i].content = content;
+              projectData.sections[i].settings = settings;
+              break;
+            }
+          }
+        } else {
+          alert('保存に失敗しました: ' + data.message);
+        }
+      })
+      .catch(error => {
+        alert('保存に失敗しました: ' + error);
+      });
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,69 @@
+{
+    "id": "product",
+    "name": "製品紹介テンプレート",
+    "description": "製品の特徴や価値を効果的に伝えるためのシンプルなデザイン",
+    "thumbnail": "/static/img/templates/thumbnails/product.jpg",
+    "css_file": "/static/css/templates/product.css",
+    "sections": [
+      {
+        "id": "header-section",
+        "type": "header",
+        "title": "ヘッダーセクション",
+        "required": true,
+        "settings": {
+          "background_color": "#f8f9fa",
+          "text_color": "#212529",
+          "padding": "100px 0",
+          "text_align": "center"
+        }
+      },
+      {
+        "id": "features-section",
+        "type": "features",
+        "title": "特徴セクション",
+        "required": true,
+        "settings": {
+          "background_color": "#ffffff",
+          "text_color": "#212529",
+          "padding": "80px 0",
+          "text_align": "center"
+        }
+      },
+      {
+        "id": "about-section",
+        "type": "about",
+        "title": "製品詳細セクション",
+        "required": false,
+        "settings": {
+          "background_color": "#f8f9fa",
+          "text_color": "#212529",
+          "padding": "80px 0",
+          "text_align": "left"
+        }
+      },
+      {
+        "id": "pricing-section",
+        "type": "pricing",
+        "title": "料金プランセクション",
+        "required": false,
+        "settings": {
+          "background_color": "#ffffff",
+          "text_color": "#212529",
+          "padding": "80px 0",
+          "text_align": "center"
+        }
+      },
+      {
+        "id": "cta-section",
+        "type": "cta",
+        "title": "行動喚起セクション",
+        "required": true,
+        "settings": {
+          "background_color": "#343a40",
+          "text_color": "#ffffff",
+          "padding": "60px 0",
+          "text_align": "center"
+        }
+      }
+    ]
+  }

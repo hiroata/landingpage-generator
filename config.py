@@ -12,7 +12,9 @@ PERMANENT_SESSION_LIFETIME = 3600  # セッション有効期限（秒）
 # API設定
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')  # 環境変数から読み込み
 ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY', '')  # 環境変数から読み込み
-DEFAULT_AI_API = 'openai'  # デフォルトで使用するAI API
+XAI_API_KEY = 'xai-i5aFjgVVorzjxbhKaVxuCkoSkPk0Y9C6GYIWpt9uqxZoxY6jOwcBktZqAFDTpEnMyuhevONnP2Int3zT'  # xAI API キー
+XAI_API_URL = 'https://api.groq.com/openai/v1/chat/completions'  # xAI API エンドポイント
+DEFAULT_AI_API = 'xai'  # デフォルトで使用するAI API
 
 # アップロード設定
 MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 最大アップロードサイズ: 5MB

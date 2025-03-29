@@ -63,8 +63,11 @@ def edit_project(project_id):
     # テンプレート情報を取得
     template = Template.get_by_id(project.template_id)
     
+    # プロジェクトオブジェクトを辞書に変換
+    project_dict = project.to_dict()
+    
     return render_template('editor/section_edit.html', 
-                          project=project,
+                          project=project_dict,
                           template=template)
 
 @bp.route('/preview/<project_id>')
@@ -77,8 +80,11 @@ def preview_project(project_id):
     # テンプレート情報を取得
     template = Template.get_by_id(project.template_id)
     
+    # プロジェクトオブジェクトを辞書に変換
+    project_dict = project.to_dict()
+    
     return render_template('editor/preview.html', 
-                          project=project,
+                          project=project_dict,
                           template=template)
 
 @bp.route('/save-section/<project_id>', methods=['POST'])
@@ -118,8 +124,8 @@ def generate_content():
         section_type = data.get('section_type')
         context = data.get('context', {})
         
-        # AIサービスの初期化（環境変数に応じて適切なAPIを選択）
-        api_type = os.getenv('DEFAULT_AI_API', 'openai')
+        # AIサービスの初期化（環境変数またはconfig.pyから設定を取得）
+        api_type = os.getenv('DEFAULT_AI_API') or current_app.config.get('DEFAULT_AI_API', 'xai')
         ai_service = AIService(api_type=api_type)
         
         # コンテンツ生成
@@ -134,6 +140,7 @@ def generate_content():
         })
     
     except Exception as e:
+        print(f"Content generation error: {str(e)}")
         return jsonify({
             'success': False,
             'message': str(e)

@@ -36,6 +36,7 @@ ENV/
 
 # APIキー設定ファイル（本番環境用）
 config.production.py
+.env  # 環境変数ファイル（API キーなどの機密情報を含む）
 
 # データファイル
 data/projects/*

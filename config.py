@@ -12,7 +12,7 @@ PERMANENT_SESSION_LIFETIME = 3600  # セッション有効期限（秒）
 # API設定
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')  # 環境変数から読み込み
 ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY', '')  # 環境変数から読み込み
-XAI_API_KEY = 'xai-i5aFjgVVorzjxbhKaVxuCkoSkPk0Y9C6GYIWpt9uqxZoxY6jOwcBktZqAFDTpEnMyuhevONnP2Int3zT'  # xAI API キー
+XAI_API_KEY = os.getenv('XAI_API_KEY', '')  # 環境変数から読み込む
 XAI_API_URL = 'https://api.groq.com/openai/v1/chat/completions'  # xAI API エンドポイント
 DEFAULT_AI_API = 'xai'  # デフォルトで使用するAI API
 
